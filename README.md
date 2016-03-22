@@ -11,3 +11,6 @@ q0 the minimum value for the scattering vector q;
 qmax the maximum value for the scattering vector q;
 dq is the step of q;
 ne is the number of atomic elements in the sample (NOTE: code works only for one species, needs work).
+
+After compiling "$mpicc *.c -lm" you can use the .xyz example file and try 
+"$mpirun -np 8 ./a.out -i graintest_12nm.xyz -q0 0.01 -qmax 15 -dq 0.0q"
