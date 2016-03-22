@@ -23,28 +23,34 @@ int main (int argc, char* argv[])
 	
 	if (myid==mpi_root)
 	{
-		
+		//reads commands
 		parserCommandDSE( &argc, &argv, &datafile, &q0, &qmax, &dq, &ne);
+		//reads the data file .xyz
 		parserxyzDSE(datafile, &ax, &ay, &az, &at, &N);	
+		//reads the 9 form factor parameters
 		ffparamDSE(at[0], &ffpar, &dwpar);
+		//using q0, qmas, dq defines the number of steps
 		Nsteps= (qmax-q0)/dq;
 		
 	}
 	
+	//sends to all threads the values of interest
 	MPI_Bcast (&N, 1, MPI_UNSIGNED, mpi_root, MPI_COMM_WORLD);
 	MPI_Bcast (&q0, 1, MPI_DOUBLE, mpi_root, MPI_COMM_WORLD);
 	MPI_Bcast (&qmax, 1, MPI_DOUBLE, mpi_root, MPI_COMM_WORLD);
 	MPI_Bcast (&dq, 1, MPI_DOUBLE, mpi_root, MPI_COMM_WORLD);
 	MPI_Bcast (&Nsteps, 1, MPI_UNSIGNED, mpi_root, MPI_COMM_WORLD);
 	
-	//Qplot = (double*) malloc(sizeof(double)*(Nsteps));
+	//defines the output array for the Intensity
 	Iplotpar = (double*) malloc(sizeof(double)*(Nsteps));
 	Iplot = (double*) malloc(sizeof(double)*(Nsteps));
 	
+	//breaks one of the sums from 0 to N atoms into numnodes sums of m atoms
 	m= (unsigned int) N/numnodes;
 	
 	if(myid!=mpi_root)
 	{
+		//mpi_root generates the vectors and the sends them to other threads
 		ax = (double*) malloc(sizeof(double)*(N));
 		ay = (double*) malloc(sizeof(double)*(N));
 		az = (double*) malloc(sizeof(double)*(N));
@@ -59,7 +65,7 @@ int main (int argc, char* argv[])
 	MPI_Bcast (&dwpar, 1, MPI_DOUBLE, mpi_root, MPI_COMM_WORLD);
 	
 	
-	//one of the sums the sum is split into m which is N/numnodes
+	//one of the sums the sum is split into m which is N/numnodes, the last thread does not calculate m atoms, but m'=N-(numnodes*m)
 	
 	if (myid != numnodes-1)
 	{
@@ -73,6 +79,7 @@ int main (int argc, char* argv[])
 				{
 					rij=dist(ax[i], ay[i], az[i], ax[j], ay[j], az[j]);
 					rij*=Q;
+					//sum a small number to rij in order to avoid an "if" in case r_ij*q were 0
 					rij+=0.0000001;
 					Iplotpar[k]+=sin(rij)/(rij);
 					//printf("%lf\n", Iplotpar[k]);
@@ -98,6 +105,7 @@ int main (int argc, char* argv[])
 				{
 					rij=dist(ax[i], ay[i], az[i], ax[j], ay[j], az[j]);
 					rij*=Q;
+					//sum a small number to rij in order to avoid an "if" in case r_ij*q were 0
 					rij+=0.0000001;
 					Iplotpar[k]+=sin(rij)/(rij);
 					//printf("%lf\n", Iplotpar[k]);
@@ -114,8 +122,9 @@ int main (int argc, char* argv[])
 	free(ax);
 	free(ay);
 	free(az);
-	
-	MPI_Reduce (Iplotpar, Iplot, Nsteps, MPI_DOUBLE, MPI_SUM, mpi_root, MPI_COMM_WORLD);	
+	//sums the results	
+	MPI_Reduce (Iplotpar, Iplot, Nsteps, MPI_DOUBLE, MPI_SUM, mpi_root, MPI_COMM_WORLD);
+
 	free(Iplotpar);
 	if (myid==mpi_root)
 	{
