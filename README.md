@@ -2,7 +2,7 @@
 Code that calculates the Debye Scattering Equation for a given set of atoms (4 columns file) using MPI.
 
 Calculates the scattered intensity given a range for the scattering vector q= 4*Pi/(lambda) *sin(theta).
-I(q) = \Sum_{i=0}^{N} \Sum_{j=0}^{N} f_j(q)f_i(q)Sinc(q*r_{ij})
+I(q) = Sum_{i=0}^{N}Sum_{j=0}^{N} f_j(q)f_i(q)Sinc(q*r_{ij})
 
 Once compiled it works like this: mpirun -np n ./a.out -i "inputfile" -q0 "q0" -qmax "qmax" -dq "dq" -ne "ne"
 where
