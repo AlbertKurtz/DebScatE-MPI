@@ -1,5 +1,5 @@
 #include "libDSE.h"
-
+/*This parser works but is more an exercise than something reliable */
 void parserCommandDSE(int *argC, char ***argV, char ** filename, double *q0, double *qmax, double *dq, int *ne)
 {
 	int argc= *argC;
